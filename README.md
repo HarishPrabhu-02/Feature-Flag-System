@@ -1,10 +1,10 @@
 # Multi-Tenant Feature Flag Management System
 
-A lightweight, zero-dependency-hell SaaS backend for managing feature toggles across multiple organizations. Built for the **Pragmatist Route**.
+A robust, self-contained SaaS backend for managing feature toggles across multiple organizations. Designed with a strict focus on multi-tenant data isolation, security, and developer ergonomics. Submitted for the **Pragmatist Route**.
 
-## Quick Start (Zero Config)
+## Quick Start (Zero Configuration)
 
-I value your time. You do not need Docker, PostgreSQL, or a frontend build pipeline to run this project. The database self-seeds on the first boot.
+This repository is designed to run immediately without requiring Docker, PostgreSQL, or frontend build pipelines. The database will automatically provision its schema and seed test data upon the first boot.
 
 1. **Install dependencies:**
    \`\`\`bash
@@ -15,29 +15,31 @@ I value your time. You do not need Docker, PostgreSQL, or a frontend build pipel
    npm start
    \`\`\`
 3. **Test the UI:**
-   Open \`http://localhost:3000/admin.html\` and log in with the auto-seeded test credentials:
+   Navigate to \`http://localhost:3000/admin.html\` and log in using the auto-seeded test credentials:
    * **Email:** admin@nike.com
    * **Password:** password123
 
-## Architecture & Philosophy
+## System Architecture
 
-Given the 8-hour time constraint, I prioritized **backend security, strict multi-tenancy, and reviewer experience** over frontend aesthetics. 
+Given the time constraints of the assignment, I prioritized backend security, strict multi-tenancy, and reviewer experience over frontend aesthetics.
 
 * **Backend Engine:** Node.js + Express.
-* **Database:** SQLite (\`sqlite3\`). Chosen specifically because it runs entirely locally without requiring the reviewer to stand up a database server. 
-* **Frontend:** Vanilla HTML/JS via \`fetch()\`. Avoiding React/Webpack eliminated configuration overhead and allowed me to focus purely on API design and data isolation.
-* **Authentication:** Custom JWT implementation using \`bcryptjs\` for stateless, scalable session management.
+* **Database:** SQLite (\`sqlite3\`). Selected specifically to provide a frictionless, zero-configuration evaluation experience. 
+* **Frontend:** Vanilla HTML/JS via native \`fetch()\`. Avoiding heavy frameworks (React/Webpack) eliminated configuration bloat, allowing me to focus entirely on API design, data isolation, and core logic.
+* **Authentication:** Custom stateless JWT implementation using \`bcryptjs\` for secure session management without relying on third-party providers.
 
-## Security & Multi-Tenancy
+## Multi-Tenant Security Model
 
-In a SaaS environment, data leakage between tenants is the ultimate failure state. 
-1. **The DB Constraint:** Feature flags are strictly bound to an \`organization_id\`.
-2. **The Auth Bouncer:** The JWT payload stores the user's \`orgId\`. The frontend is never trusted to identify the tenant.
-3. **The Tenant Guard:** Every \`PATCH\` or \`GET\` request explicitly includes \`WHERE organization_id = req.user.orgId\`, making it impossible for Tenant A to modify Tenant B's flags, even if they guess the flag's primary key.
+In a shared-infrastructure SaaS environment, data leakage between tenants is the ultimate failure state. This system enforces isolation at three distinct layers:
 
-## Future Improvements (With 1 Month Instead of 1 Week)
+1. **Schema Constraints:** Every feature flag is strictly bound to an \`organization_id\` at the database level.
+2. **Stateless Authentication:** The tenant's identity (\`orgId\`) is cryptographically signed directly into the JWT payload upon login. The backend never trusts the client to declare which organization it belongs to.
+3. **Authorization Guards:** All state-mutating endpoints enforce strict ownership checks. For example, \`PATCH\` requests execute against \`WHERE id = ? AND organization_id = req.user.orgId\`, making horizontal privilege escalation impossible.
 
-If this were moving to production, I would implement:
-1. **Redis Caching:** The SDK check endpoint (\`GET /api/sdk/check\`) will be hit massively by end-users. Hitting the database on every page load is inefficient; flag states should be cached in memory.
-2. **Robust ORM & Migrations:** Swap raw SQLite queries for Prisma or TypeORM connected to PostgreSQL to handle schema evolution safely.
-3. **React/Next.js Frontend:** Rebuild the UI with a modern component library (like shadcn/ui) for better state management and error boundaries.
+## Production Roadmap 
+
+If tasked with scaling this prototype for production over a 30-day cycle, I would implement the following:
+
+1. **In-Memory Caching (Redis):** The public SDK check endpoint (\`POST /api/sdk/check\`) will experience high read-throughput from end-users. Hitting a disk-based database on every page load is inefficient; flag states must be cached.
+2. **Robust ORM & Migrations:** Swap raw SQLite queries for Prisma or TypeORM connected to a PostgreSQL instance to handle concurrent writes and safe schema evolution.
+3. **Modernized Client:** Rebuild the static HTML views into a React/Next.js dashboard with proper state management, component reusability, and error boundaries.
