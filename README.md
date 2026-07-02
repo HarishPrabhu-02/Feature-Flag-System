@@ -43,3 +43,6 @@ If tasked with scaling this prototype for production over a 30-day cycle, I woul
 1. **In-Memory Caching (Redis):** The public SDK check endpoint (\`POST /api/sdk/check\`) will experience high read-throughput from end-users. Hitting a disk-based database on every page load is inefficient; flag states must be cached.
 2. **Robust ORM & Migrations:** Swap raw SQLite queries for Prisma or TypeORM connected to a PostgreSQL instance to handle concurrent writes and safe schema evolution.
 3. **Modernized Client:** Rebuild the static HTML views into a React/Next.js dashboard with proper state management, component reusability, and error boundaries.
+
+## Acknowledgment of Generative AI  
+Google Gemini was used throughout for code generation, design choices and project setup.
